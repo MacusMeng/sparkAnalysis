@@ -3,7 +3,7 @@ package com.act.bigdata.statistics
 import java.io.{BufferedReader, InputStreamReader}
 import java.util.zip.ZipInputStream
 
-import com.act.bigdata.util.{DateUtil, SparkUtil, StringUtil}
+import com.act.bigdata.util.{DateUtil, CarbonDataUtil, StringUtil}
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.CarbonContext
@@ -18,7 +18,7 @@ object SuspectPhoneAnalysis {
   val appStart = System.currentTimeMillis()
   val logger = LoggerFactory.getLogger(BlackLogAnalysis.getClass)
   Logger.getLogger("org").setLevel(Level.WARN)
-  lazy val sc = SparkUtil.sparkInit("suspectPhone analysis")
+  lazy val sc = CarbonDataUtil.sparkInit("suspectPhone analysis")
 
   def main(args: Array[String]): Unit = {
     val startTime = args(0)

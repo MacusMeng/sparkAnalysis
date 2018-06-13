@@ -3,7 +3,7 @@ package com.act.bigdata.statistics
 
 import java.io.File
 
-import com.act.bigdata.util.{ShellUtil, SparkUtil, StringUtil}
+import com.act.bigdata.util.{ShellUtil, CarbonDataUtil, StringUtil}
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{CarbonContext, Row}
@@ -17,7 +17,7 @@ object UserInfoUpload {
   val appStart = System.currentTimeMillis()
   val logger = LoggerFactory.getLogger(UserInfoUpload.getClass)
   Logger.getLogger("org").setLevel(Level.WARN)
-  lazy val sc = SparkUtil.sparkInit("userInfo upload")
+  lazy val sc = CarbonDataUtil.sparkInit("userInfo upload")
 
   def main(args: Array[String]): Unit = {
     //TODO,上传文件到hdfs,scala调用shell命令
@@ -38,7 +38,7 @@ object UserInfoUpload {
       ShellUtil.command(mvCom)
       logger.warn("=====移动文件到上传目录=====")
       //上传文件到hdfs
-      SparkUtil.exsitFile(sc._1, "/tmp/data/userinfo/" + d)
+      CarbonDataUtil.exsitFile(sc._1, "/tmp/data/userinfo/" + d)
       val upCom = Array("hadoop", "fs", "-put", "/u11/userinfo/" + d + "/*", "/tmp/data/userinfo/" + d)
       ShellUtil.command(upCom)
       logger.warn("=====上传文件到hdfs=====")

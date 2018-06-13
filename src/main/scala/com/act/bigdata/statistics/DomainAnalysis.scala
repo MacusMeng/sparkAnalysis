@@ -1,6 +1,6 @@
 package com.act.bigdata.statistics
 
-import com.act.bigdata.util.SparkUtil
+import com.act.bigdata.util.CarbonDataUtil
 import org.apache.log4j.{Level, Logger}
 import org.slf4j.LoggerFactory
 
@@ -11,7 +11,7 @@ object DomainAnalysis {
   val appStart = System.currentTimeMillis()
   val logger = LoggerFactory.getLogger(DomainAnalysis.getClass)
   Logger.getLogger("org").setLevel(Level.WARN)
-  lazy val sc = SparkUtil.sparkInit("domain analysis")
+  lazy val sc = CarbonDataUtil.sparkInit("domain analysis")
 
   def main(args: Array[String]): Unit = {
     val data = sc._1.textFile("/tmp/mengr/blackDomain/*/*/*")

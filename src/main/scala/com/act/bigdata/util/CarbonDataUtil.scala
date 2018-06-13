@@ -11,7 +11,7 @@ import org.apache.spark.{SparkConf, SparkContext}
   * Created by Meng Ruo on 2016/12/1.
   * 初始化spark
   */
-object SparkUtil {
+object CarbonDataUtil {
   val carbonHdfsPath =  ResourceBundle.getBundle("hdfs").getString("hdfs.carbon")
   val hiveHdfsStorePath = ResourceBundle.getBundle("hdfs").getString("hdfs.hive")
 

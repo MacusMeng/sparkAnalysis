@@ -1,6 +1,6 @@
 package com.act.bigdata.statistics
 
-import com.act.bigdata.util.{DateUtil, SparkUtil}
+import com.act.bigdata.util.{DateUtil, CarbonDataUtil}
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
@@ -16,7 +16,7 @@ object CatchSuspectAnalysis {
   val appStart = System.currentTimeMillis()
   val logger = LoggerFactory.getLogger(CatchSuspectAnalysis.getClass)
   Logger.getLogger("org").setLevel(Level.WARN)
-  lazy val sc = SparkUtil.sparkInit("suspect analysis")
+  lazy val sc = CarbonDataUtil.sparkInit("suspect analysis")
 
   def main(args: Array[String]): Unit = {
     val startTime = args(0)

@@ -1,6 +1,6 @@
 package com.act.bigdata.statistics
 
-import com.act.bigdata.util.{DateUtil, SparkUtil, StringUtil}
+import com.act.bigdata.util.{DateUtil, CarbonDataUtil, StringUtil}
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.CarbonContext
@@ -15,7 +15,7 @@ object BlackLogAnalysis {
   val appStart = System.currentTimeMillis()
   val logger = LoggerFactory.getLogger(BlackLogAnalysis.getClass)
   Logger.getLogger("org").setLevel(Level.WARN)
-  lazy val sc = SparkUtil.sparkInit("blackDomain analysis")
+  lazy val sc = CarbonDataUtil.sparkInit("blackDomain analysis")
 
   def main(args: Array[String]): Unit = {
     val startTime = args(0)
@@ -73,7 +73,7 @@ object BlackLogAnalysis {
   //灰域名日志信息中包含判定的黑域名信息
   def getGreyLog(sc: SparkContext, startTime: String, domains: Array[String]): Unit = {
     val path = "/data/anti_fraud/" + startTime.substring(0, 6) + "/" + startTime.substring(6, startTime.length) + "/grey_fulldata_topic/"
-    if (SparkUtil.exsitFile(sc, path)) {
+    if (CarbonDataUtil.exsitFile(sc, path)) {
       val data = sc.textFile(path + "*.ok.csv")
       data.filter(x => domains.indexOf(StringUtil.getDomain(x.split("\001")(0))) > 0)
         .map(x => {

@@ -13,18 +13,11 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <hadoop.version>2.7.1</hadoop.version>
     <spark.version>1.6.2</spark.version>
-    <scala.version>2.10.6</scala.version>
-    <scala.binary.version>2.10</scala.binary.version>
+    <scala.version>2.12.4</scala.version>
+    <scala.binary.version>2.12</scala.binary.version>
   </properties>
 
   <dependencies>
-    <!-- test -->
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.11</version>
-      <scope>test</scope>
-    </dependency>
     <!-- spark BEGIN -->
     <dependency>
       <groupId>org.apache.spark</groupId>
@@ -64,13 +57,6 @@
     </dependency>
     <!-- spark END -->
 
-    <!-- es -->
-    <dependency>
-      <groupId>org.elasticsearch</groupId>
-      <artifactId>elasticsearch-spark_2.10</artifactId>
-      <version>2.3.3</version>
-      <scope>compile</scope>
-    </dependency>
     <!-- redis -->
     <dependency>
       <groupId>redis.clients</groupId>
@@ -84,12 +70,6 @@
       <artifactId>commons-lang3</artifactId>
       <version>3.3.2</version>
       <scope>compile</scope>
-    </dependency>
-    <!-- geoip -->
-    <dependency>
-      <groupId>com.maxmind.geoip2</groupId>
-      <artifactId>geoip2</artifactId>
-      <version>0.8.0</version>
     </dependency>
     <!--mysql-->
     <dependency>
@@ -110,6 +90,11 @@
       <artifactId>carbondata-spark</artifactId>
       <version>1.0.0-incubating</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.carbondata</groupId>
+      <artifactId>carbondata-spark-common</artifactId>
+      <version>1.0.0-incubating</version>
+    </dependency>
 
     <!--excel-->
     <dependency>
@@ -118,18 +103,14 @@
       <version>2.6.12</version>
     </dependency>
 
-    <!--pcap-->
-    <dependency>
-      <groupId>io.pkts</groupId>
-      <artifactId>pkts-core</artifactId>
-      <version>3.0.3</version>
-    </dependency>
 
     <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
       <version>2.6</version>
     </dependency>
+
+
 
   </dependencies>
 
@@ -139,7 +120,7 @@
         <plugin>
           <groupId>org.scala-tools</groupId>
           <artifactId>maven-scala-plugin</artifactId>
-          <version>2.15.1</version>
+          <version>2.12.4</version>
           <executions>
             <execution>
               <id>compile-scala</id>
@@ -191,6 +172,29 @@
             <target>1.8</target>
             <encoding>UTF-8</encoding>
           </configuration>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-shade-plugin</artifactId>
+          <version>3.1.1</version>
+          <executions>
+            <execution>
+              <phase>package</phase>
+              <goals>
+                <goal>shade</goal>
+              </goals>
+              <configuration>
+                <artifactSet>
+                  <includes>
+                    <include>com.act.*:*</include>
+                    <include>com.apache:carbondata</include>
+                     <include>com.oracle:*</include>
+                  </includes>
+                </artifactSet>
+              </configuration>
+            </execution>
+          </executions>
         </plugin>
       </plugins>
     </pluginManagement>

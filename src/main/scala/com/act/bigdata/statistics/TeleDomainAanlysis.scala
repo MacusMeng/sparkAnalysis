@@ -4,7 +4,7 @@ import java.io.{BufferedReader, InputStreamReader}
 import java.util.Date
 import java.util.zip.ZipInputStream
 
-import com.act.bigdata.util.{DateUtil, SparkUtil, StringUtil}
+import com.act.bigdata.util.{DateUtil, CarbonDataUtil, StringUtil}
 import org.apache.log4j.{Level, Logger}
 import org.slf4j.LoggerFactory
 
@@ -18,7 +18,7 @@ object TeleDomainAanlysis {
   val appStart = System.currentTimeMillis()
   val logger = LoggerFactory.getLogger(CatchSuspectAnalysis.getClass)
   Logger.getLogger("org").setLevel(Level.WARN)
-  lazy val sc = SparkUtil.sparkInit("telephoneDomain analysis")
+  lazy val sc = CarbonDataUtil.sparkInit("telephoneDomain analysis")
 
   def main(args: Array[String]): Unit = {
     val now = new Date()
