@@ -1,9 +1,8 @@
 package com.act.bigdata.statistics
 
-
 import java.io.File
 
-import com.act.bigdata.util.{ShellUtil, CarbonDataUtil, StringUtil}
+import com.act.bigdata.util.{CarbonDataUtil, FileUtil, ShellUtil, StringUtil}
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{CarbonContext, Row}
@@ -13,38 +12,38 @@ import org.slf4j.LoggerFactory
 /**
   * Created by Meng Ruo on 2018/6/12  10:33.
   **/
-object UserInfoUpload {
+object SaveZipAnalysis {
   val appStart = System.currentTimeMillis()
-  val logger = LoggerFactory.getLogger(UserInfoUpload.getClass)
+  val logger = LoggerFactory.getLogger(SaveZipAnalysis.getClass)
   Logger.getLogger("org").setLevel(Level.WARN)
-  lazy val sc = CarbonDataUtil.sparkInit("userInfo upload")
+  lazy val sc = CarbonDataUtil.sparkInit("zip analysis")
 
   def main(args: Array[String]): Unit = {
-    //TODO,上传文件到hdfs,scala调用shell命令
-    val files = getFiles(new File("/u12/ftp_crawer/userinfo*"))
+    val files = getFiles(new File("/u12/ftp_crawer/"))
     var dates = Set[String]()
     for (file <- files) {
       val fileName = file.getName
-      val date = fileName.split("_")(2).substring(0, 8)
-      dates += date
+      if (fileName.startsWith("userinfo")){
+        val date = fileName.split("_")(2).substring(0, 8)
+        dates += date
+      }
     }
     for (d <- dates) {
       val newFile = new File("/u11/userinfo/" + d)
       if (!newFile.exists()) {
-        newFile.createNewFile()
+        newFile.mkdir()
       }
       //移动文件到上传目录
-      val mvCom = Array("mv", "/u12/ftp_crawer/userinfo*" + d + "*.zip", "/u11/userinfo/" + d)
-      ShellUtil.command(mvCom)
+      val f= new File("/u12/ftp_crawer/userinfo*" + d+"*.zip")
+      f.renameTo(newFile)
       logger.warn("=====移动文件到上传目录=====")
       //上传文件到hdfs
       CarbonDataUtil.exsitFile(sc._1, "/tmp/data/userinfo/" + d)
-      val upCom = Array("hadoop", "fs", "-put", "/u11/userinfo/" + d + "/*", "/tmp/data/userinfo/" + d)
-      ShellUtil.command(upCom)
+      FileUtil.upload("/u11/userinfo/" + d,"/* /tmp/data/userinfo/" + d)
       logger.warn("=====上传文件到hdfs=====")
       //上传完毕后删除文件
-      val deleCom = Array("mv", "/u11/userinfo/" + d ,"/u11/userinfo/tmp/")
-      ShellUtil.command(deleCom)
+      val f1 = new File("/u11/userinfo/"+d)
+      f1.renameTo(new File("/u11/userinfo/tmp/"))
       logger.warn("=====上传完毕后删除文件=====")
       //存储到CarbonData
       saveToCarbon(sc._2, d, StringUtil.readFromZip(sc._1, "/tmp/data/userinfo/" + d + "/*.zip"))
@@ -73,9 +72,13 @@ object UserInfoUpload {
       Row(lines(0), lines(1), lines(2), tel, id, lines(5), lines(6), lines(7))
     })
     val dataFrame = cbc.createDataFrame(rowRDD, schema)
-    dataFrame.registerTempTable("t_aj_userinfo_" + date)
+    dataFrame.registerTempTable("t_aj_userinfo_tmp_" + date)
 
-    cbc.sql("insert into  t_aj_userinfo_" + date + "select * from t_aj_userinfo_" + date)
+    cbc.sql("insert into  t_aj_userinfo_" + date + "select * from t_aj_userinfo_tmp_" + date)
+
+    sc._1.stop()
+    val appEnd = System.currentTimeMillis()
+    logger.warn("运行时间:" + (appEnd - appStart) / 1000 + "s")
   }
 
   def getFiles(dir: File): Array[File] = {
