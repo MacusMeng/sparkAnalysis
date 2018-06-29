@@ -13,6 +13,6 @@ object Entity {
 
   case class UrlBean(name: String, company: String, domain: String)
 
-  case class WebClass(url: String, category: String, keyword: String, title: String, content: String)
+  case class WebClass(url1: String, category1: String, keyword1: String, title1: String, content1: String,url: String, category: String, keyword: String, title: String, content: String)
 
 }

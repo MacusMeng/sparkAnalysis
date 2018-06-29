@@ -39,9 +39,9 @@ object KafkaScalaConsumer {
     val consumer = new KafkaConsumer[String, String](props)
     consumer.subscribe(util.Arrays.asList(TOPIC))
     while (true) {
-      System.out.println("开始消费topic:" + TOPIC)
+      println("开始消费topic:" + TOPIC)
       val records = consumer.poll(100)
-      System.out.println("当前消费数据量:" + records.count)
+      println("当前消费数据量:" + records.count)
       val list = new ArrayBuffer[WebClass]
       for (record <- records) {
         try
@@ -50,7 +50,7 @@ object KafkaScalaConsumer {
           case e: InterruptedException =>
             e.printStackTrace()
         }
-        System.out.println("partition:" + record.partition + "offset:" + record.offset)
+        println("partition:" + record.partition + "offset:" + record.offset)
         val json = JSON.parseFull(new String(record.value()))
         json match {
           case Some(map: Map[String, String]) => {
@@ -58,13 +58,13 @@ object KafkaScalaConsumer {
             if (map.contains("meta")) {
               key = map("meta")
             }
-            list += WebClass(map("url"), map("category"), key, map("title"), map("content"))
+            list += WebClass(map("url"), map("category"), key, map("title"), map("content"),map("url"), map("category"), key, map("title"), map("content"))
           }
           case None => println("Parsing failed")
           case other => println("Unknown data structure: " + other)
         }
       }
-      WebClassDao.exec(dao => dao.insert(list.toArray))
+      WebClassDao.exec(dao => dao.insert(list))
     }
   }
 }

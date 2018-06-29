@@ -61,4 +61,34 @@ object ShellUtil {
   }
 
   private def isOverTime(startTime: Long) = System.currentTimeMillis - startTime >= DEFAULT_TIMEOUT
+
+
+  import java.io.BufferedReader
+  import java.io.IOException
+  import java.io.OutputStreamWriter
+  import java.io.PrintWriter
+
+  @throws[InterruptedException]
+  def exec(command: String): String = {
+    var returnString = ""
+    var pro:Process = null
+    val runTime = Runtime.getRuntime
+    if (runTime == null) System.err.println("Create runtime false!")
+    try {
+      pro = runTime.exec(command)
+      val input = new BufferedReader(new InputStreamReader(pro.getInputStream))
+      val output = new PrintWriter(new OutputStreamWriter(pro.getOutputStream))
+      var line:String = null
+      while ( {
+        (line = input.readLine) != null
+      }) returnString = returnString + line + "\n"
+      input.close()
+      output.close()
+      pro.destroy()
+    } catch {
+      case ex: IOException =>
+        Logger.getLogger(classOf[Nothing].getName).log(Level.ERROR, null, ex)
+    }
+    returnString
+  }
 }

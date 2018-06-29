@@ -1,14 +1,10 @@
 package com.act.bigdata.statistics
 
-import java.io.{BufferedReader, InputStreamReader}
 import java.util.Date
-import java.util.zip.ZipInputStream
 
 import com.act.bigdata.util.{DateUtil, CarbonDataUtil, StringUtil}
 import org.apache.log4j.{Level, Logger}
 import org.slf4j.LoggerFactory
-
-import scala.collection.mutable.ArrayBuffer
 
 /**
   * Created by Meng Ruo on 2018/5/17  11:58.
