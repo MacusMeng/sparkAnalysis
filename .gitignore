@@ -5,3 +5,4 @@
 .idea/vcs.xml
 target/sparkAnalysis-1.0-SNAPSHOT.jar
 *.class
+.idea/workspace.xml
