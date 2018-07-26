@@ -1,8 +1,7 @@
 package com.act.bigdata.statistics
 
-import java.io.File
 
-import com.act.bigdata.util.{CarbonDataUtil, FileUtil, ShellUtil, StringUtil}
+import com.act.bigdata.util.{CarbonDataUtil, StringUtil}
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{CarbonContext, Row}
@@ -19,36 +18,10 @@ object SaveZipAnalysis {
   lazy val sc = CarbonDataUtil.sparkInit("zip analysis")
 
   def main(args: Array[String]): Unit = {
-    val files = getFiles(new File("/u12/ftp_crawer/"))
-    var dates = Set[String]()
-    for (file <- files) {
-      val fileName = file.getName
-      if (fileName.startsWith("userinfo")){
-        val date = fileName.split("_")(2).substring(0, 8)
-        dates += date
-      }
-    }
-    for (d <- dates) {
-      val newFile = new File("/u11/userinfo/" + d)
-      if (!newFile.exists()) {
-        newFile.mkdir()
-      }
-      //移动文件到上传目录
-      val f= new File("/u12/ftp_crawer/userinfo*" + d+"*.zip")
-      f.renameTo(newFile)
-      logger.warn("=====移动文件到上传目录=====")
-      //上传文件到hdfs
-      CarbonDataUtil.exsitFile(sc._1, "/tmp/data/userinfo/" + d)
-      FileUtil.upload("/u11/userinfo/" + d,"/* /tmp/data/userinfo/" + d)
-      logger.warn("=====上传文件到hdfs=====")
-      //上传完毕后删除文件
-      val f1 = new File("/u11/userinfo/"+d)
-      f1.renameTo(new File("/u11/userinfo/tmp/"))
-      logger.warn("=====上传完毕后删除文件=====")
-      //存储到CarbonData
-      saveToCarbon(sc._2, d, StringUtil.readFromZip(sc._1, "/tmp/data/userinfo/" + d + "/*.zip"))
-      logger.warn("=====存储到CarbonData=====")
-    }
+    val date = args(0)
+    //存储到CarbonData
+    saveToCarbon(sc._2, date, StringUtil.readFromZip(sc._1, "/tmp/data/userinfo/" + date + "/*.zip"))
+    logger.warn("=====存储到CarbonData=====")
   }
 
   def saveToCarbon(cbc: CarbonContext, date: String, stringRDD: RDD[String]): Unit = {
@@ -60,29 +33,30 @@ object SaveZipAnalysis {
     val schemaString = "SIP,DIP,URL,Tel,ID,Account,account_prefix,account_subfix"
     val schema = StructType(schemaString.split(",").map(fieldName => StructField(fieldName, StringType, true)))
     val rowRDD = stringRDD.map(x => {
-      val lines = x.split(",")
-      var tel = lines(3)
-      var id = lines(4)
-      if ("Tel[(null)]".equals(tel)) {
-        tel = ""
+      var row: Row = null
+      try {
+        val lines = x.split(",")
+        var tel = lines(3)
+        var id = lines(4)
+        if ("Tel[(null)]".equals(tel)) {
+          tel = ""
+        }
+        if ("ID[(null)]".equals(id)) {
+          id = ""
+        }
+        row = Row(lines(0), lines(1), lines(2), tel, id, lines(5), lines(6), lines(7))
+      } catch {
+        case e: Exception => None
       }
-      if ("ID[(null)]".equals(id)) {
-        id = ""
-      }
-      Row(lines(0), lines(1), lines(2), tel, id, lines(5), lines(6), lines(7))
-    })
+      row
+    }).filter(x => x != null).distinct()
     val dataFrame = cbc.createDataFrame(rowRDD, schema)
     dataFrame.registerTempTable("t_aj_userinfo_tmp_" + date)
 
-    cbc.sql("insert into  t_aj_userinfo_" + date + "select * from t_aj_userinfo_tmp_" + date)
+    cbc.sql("insert into  t_aj_userinfo_" + date + " select * from t_aj_userinfo_tmp_" + date)
 
     sc._1.stop()
     val appEnd = System.currentTimeMillis()
     logger.warn("运行时间:" + (appEnd - appStart) / 1000 + "s")
-  }
-
-  def getFiles(dir: File): Array[File] = {
-    dir.listFiles.filter(_.isFile) ++
-      dir.listFiles.filter(_.isDirectory).flatMap(getFiles)
   }
 }
